@@ -10,7 +10,7 @@ class DbUserSource implements UserSource {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public DbUserSource(JdbcTemplate jdbcTemplate) {
+    DbUserSource(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 

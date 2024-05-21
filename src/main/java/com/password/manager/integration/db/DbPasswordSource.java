@@ -2,9 +2,11 @@ package com.password.manager.integration.db;
 
 import com.password.manager.password.PasswordBundle;
 import com.password.manager.password.PasswordSource;
+import com.password.manager.password.encryptor.PasswordEncryptor;
 import com.password.manager.user.User;
 import com.password.manager.user.UserSession;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -17,31 +19,51 @@ class DbPasswordSource implements PasswordSource {
 
     private final UserSession userSession;
     private final JdbcTemplate jdbcTemplate;
+    private final PasswordEncryptor passwordEncryptor;
 
-    public DbPasswordSource(UserSession userSession, JdbcTemplate jdbcTemplate) {
+    DbPasswordSource(UserSession userSession,
+                     JdbcTemplate jdbcTemplate,
+                     PasswordEncryptor passwordEncryptor) {
         this.userSession = userSession;
         this.jdbcTemplate = jdbcTemplate;
+        this.passwordEncryptor = passwordEncryptor;
     }
 
     @Override
     public String getBundlePassword(String bundle) {
         User user = userSession.getSessionUser();
-        return jdbcTemplate.queryForObject(
+
+        RowMapper<String> rowMapper = (rs, rowNum) -> rs.getString("password");
+
+        String password = jdbcTemplate.queryForStream(
                 "SELECT password FROM user_password WHERE username = ? and bundle = ?;",
-                new Object[]{bundle, user.username()},
-                String.class
-        );
+                rowMapper,
+                user.username(), bundle
+        ).findFirst().orElse(null);
+
+        return passwordEncryptor.decrypt(password);
     }
 
     @Override
     public Map<String, PasswordBundle> getUserPasswords() {
         User user = userSession.getSessionUser();
-        return jdbcTemplate.queryForList(
-                        "SELECT * FROM user_password where username = ?;",
-                        PasswordBundle.class,
-                        new Object[]{user.username()}
-                ).stream()
+
+        RowMapper<PasswordBundle> rowMapper = (rs, rowNum) ->
+                new PasswordBundle(rs.getString("bundle"), rs.getString("password"));
+
+        return jdbcTemplate.queryForStream(
+                        "SELECT bundle, password FROM user_password where username = ?;",
+                        rowMapper,
+                        user.username()
+                ).map(this::getPasswordBundle)
                 .collect(toMap(PasswordBundle::password, identity()));
+    }
+
+    private PasswordBundle getPasswordBundle(PasswordBundle dbPasswordBundle) {
+        return new PasswordBundle(
+                dbPasswordBundle.bundle(),
+                passwordEncryptor.decrypt(dbPasswordBundle.password())
+        );
     }
 
     @Override
@@ -50,7 +72,7 @@ class DbPasswordSource implements PasswordSource {
         int rows = jdbcTemplate.update("INSERT INTO user_password VALUES (?, ?, ?) ON CONFLICT DO NOTHING;",
                 user.username(),
                 passwordBundle.bundle(),
-                passwordBundle.password()
+                passwordEncryptor.encrypt(passwordBundle.password())
         );
 
         return rows > 0;
@@ -61,7 +83,7 @@ class DbPasswordSource implements PasswordSource {
         User user = userSession.getSessionUser();
 
         int rows = jdbcTemplate.update("UPDATE user_password VALUES SET password = ? WHERE username = ? AND bundle = ?;",
-                passwordBundle.password(),
+                passwordEncryptor.encrypt(passwordBundle.password()),
                 user.username(),
                 passwordBundle.bundle()
         );
