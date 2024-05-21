@@ -3,10 +3,9 @@ package com.password.manager.runner.actions.password;
 import com.password.manager.exception.InvalidPasswordException;
 import com.password.manager.password.PasswordBundle;
 import com.password.manager.password.PasswordValues;
+import com.password.manager.runner.InputReader;
 import com.password.manager.runner.actions.Action;
 import com.password.manager.user.UserSignInChecker;
-
-import java.util.Scanner;
 
 import static com.password.manager.password.PasswordValues.DIGITS;
 import static com.password.manager.password.PasswordValues.UPPERCASE;
@@ -17,11 +16,11 @@ public abstract class ManagePasswordAction implements Action {
     private static final int MIN_PASSWORD_LENGTH = 10;
     private static final int MAX_PASSWORD_LENGTH = 50;
 
-    private final Scanner scanner;
+    private final InputReader inputReader;
     private final UserSignInChecker userSignInChecker;
 
-    protected ManagePasswordAction(Scanner scanner, UserSignInChecker userSignInChecker) {
-        this.scanner = scanner;
+    protected ManagePasswordAction(InputReader inputReader, UserSignInChecker userSignInChecker) {
+        this.inputReader = inputReader;
         this.userSignInChecker = userSignInChecker;
     }
 
@@ -30,9 +29,9 @@ public abstract class ManagePasswordAction implements Action {
         userSignInChecker.checkSignIn();
 
         System.out.println("Enter bundle name: ");
-        String bundle = scanner.next();
+        String bundle = inputReader.read();
         System.out.println("Enter password: ");
-        String password = scanner.next();
+        String password = inputReader.read();
         isPasswordValid(password);
 
         manage(new PasswordBundle(bundle, password));

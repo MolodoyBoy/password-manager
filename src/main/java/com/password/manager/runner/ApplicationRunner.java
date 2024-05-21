@@ -6,7 +6,6 @@ import com.password.manager.exception.ApplicationExitException;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Scanner;
 import java.util.Set;
 
 import static java.lang.String.format;
@@ -17,11 +16,11 @@ import static com.password.manager.runner.Command.HELP;
 @Component
 public class ApplicationRunner {
 
-    private final Scanner scanner;
+    private final InputReader inputReader;
     private final Map<String, Action> commands;
 
-    public ApplicationRunner(Scanner scanner, Set<Action> actions) {
-        this.scanner = scanner;
+    public ApplicationRunner(InputReader inputReader, Set<Action> actions) {
+        this.inputReader = inputReader;
         this.commands = actions.stream()
                 .collect(toMap(action -> action.getSupportedCommand().getValue(), identity()));
     }
@@ -48,7 +47,7 @@ public class ApplicationRunner {
     private void performAction() {
         System.out.println("Waiting for command...");
 
-        String input = scanner.next();
+        String input = inputReader.read();
         Action action = commands.get(input);
 
         if (action != null) action.perform();

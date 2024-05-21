@@ -3,11 +3,10 @@ package com.password.manager.runner.actions.password;
 import com.password.manager.exception.PasswordNotFoundException;
 import com.password.manager.password.PasswordSource;
 import com.password.manager.runner.Command;
+import com.password.manager.runner.InputReader;
 import com.password.manager.runner.actions.Action;
 import com.password.manager.user.UserSignInChecker;
 import org.springframework.stereotype.Component;
-
-import java.util.Scanner;
 
 import static com.password.manager.runner.Command.GET_PASSWORD;
 import static java.lang.String.format;
@@ -15,14 +14,14 @@ import static java.lang.String.format;
 @Component
 public class GetPasswordAction implements Action {
 
-    private final Scanner scanner;
+    private final InputReader inputReader;
     private final PasswordSource passwordSource;
     private final UserSignInChecker userSignInChecker;
 
-    public GetPasswordAction(Scanner scanner,
+    public GetPasswordAction(InputReader inputReader,
                              PasswordSource passwordSource,
                              UserSignInChecker userSignInChecker) {
-        this.scanner = scanner;
+        this.inputReader = inputReader;
         this.passwordSource = passwordSource;
         this.userSignInChecker = userSignInChecker;
     }
@@ -32,7 +31,7 @@ public class GetPasswordAction implements Action {
         userSignInChecker.checkSignIn();
 
         System.out.println("Enter bundle name: ");
-        String bundle = scanner.next();
+        String bundle = inputReader.read();
 
         String password = passwordSource.getBundlePassword(bundle);
         if (password == null) {

@@ -4,10 +4,9 @@ import com.password.manager.exception.InvalidBundledException;
 import com.password.manager.password.PasswordBundle;
 import com.password.manager.password.PasswordSource;
 import com.password.manager.runner.Command;
+import com.password.manager.runner.InputReader;
 import com.password.manager.user.UserSignInChecker;
 import org.springframework.stereotype.Component;
-
-import java.util.Scanner;
 
 import static com.password.manager.runner.Command.CREATE_PASSWORD;
 import static java.lang.String.format;
@@ -17,10 +16,10 @@ public class CreatePasswordAction extends ManagePasswordAction {
 
     private final PasswordSource passwordSource;
 
-    public CreatePasswordAction(Scanner scanner,
+    public CreatePasswordAction(InputReader inputReader,
                                 PasswordSource passwordSource,
                                 UserSignInChecker userSignInChecker) {
-        super(scanner, userSignInChecker);
+        super(inputReader, userSignInChecker);
         this.passwordSource = passwordSource;
     }
 
