@@ -25,6 +25,7 @@ public class XORCipherPasswordEncryptor implements PasswordEncryptor {
             char encryptedChar = (char) (plainChar ^ keyChar);
             encrypted.append(encryptedChar);
         }
+
         return encrypted.toString();
     }
 
