@@ -1,5 +1,5 @@
 CREATE TABLE user_password(
-    username VARCHAR NOT NULL,
+    username VARCHAR NOT NULL references user_info(username),
     bundle VARCHAR NOT NULL,
     password VARCHAR NOT NULL
 );
